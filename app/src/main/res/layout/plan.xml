@@ -46,13 +46,6 @@
             android:layout_below="@id/text_view_note"
             android:text="Date"/>
 
-        <TextView
-            android:id="@+id/text_view_location"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/text_view_date"
-            android:text="Location"/>
-
     </RelativeLayout>
 
 </androidx.cardview.widget.CardView>

@@ -38,7 +38,7 @@ class PlannerAdapter: ListAdapter<Plan, PlanViewHolder>(DIFF_CALLBACK){
         this.listener = listener
     }
 
-    fun getPlanByPosition(position: Int) = getItem(position)
+    fun getPlanByPosition(position: Int): Plan = getItem(position)
 
     /*override fun getItemViewType(position: Int): Int {
         return bibDatabase.getEntry(position % countOfEntries).type.ordinal
@@ -70,21 +70,21 @@ class PlanViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         titleView.text = plan.title
         noteView.text = plan.note
         dateView.text = plan.date
-        locationView.text = plan.location
+        //locationView.text = plan.location
         priorityView.text = plan.priority.toString()
     }
 
     val titleView: TextView
     val noteView: TextView
     val dateView: TextView
-    val locationView: TextView
+    //val locationView: TextView
     val priorityView: TextView
 
     init {
         titleView = view.findViewById(R.id.text_view_title)
         noteView = view.findViewById(R.id.text_view_note)
         dateView = view.findViewById(R.id.text_view_date)
-        locationView = view.findViewById(R.id.text_view_location)
+        //locationView = view.findViewById(R.id.text_view_location)
         priorityView = view.findViewById(R.id.text_view_priority)
     }
 }

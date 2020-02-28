@@ -8,23 +8,44 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
+/**
+ *  Entity for storing a active tasks.
+ *  Need for represent through adapter
+ **/
 @Entity(tableName = "plan")
 data class Plan(
     @ColumnInfo(name = "Title") val title: String?,
     @ColumnInfo(name = "Note") val note: String?,
     @ColumnInfo(name = "Date") val date: String?,
     @ColumnInfo(name = "Location") val location: String?,
-    @ColumnInfo(name = "Priority") val priority: Int?
+    @ColumnInfo(name = "Priority") val priority: Int?,
+    @ColumnInfo(name = "Category") val category: String?
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0
 }
 
+/**
+ *  Entity for storing a finish tasks.
+ *  Need for make infographic
+ **/
+@Entity(tableName = "statistic")
+data class Statistic(
+    @ColumnInfo(name = "isSolved") val isSolved: Boolean,
+    @ColumnInfo(name = "Date") val date: String?,
+    @ColumnInfo(name = "Location") val location: String?,
+    @ColumnInfo(name = "Priority") val priority: Int?,
+    @ColumnInfo(name = "Category") val category: String?
+) {
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "Stat_id") var id: Int = 0
+}
 
-@Database(entities = [Plan::class], version = 1)
+@Database(entities = [Plan::class, Statistic::class], version = 4)
 abstract class PlannerDatabase : RoomDatabase() {
 
     abstract fun planDAO(): PlanDao
+    abstract fun statDAO(): StatDao
 
     companion object {
         private var instance: PlannerDatabase? = null
@@ -54,13 +75,13 @@ abstract class PlannerDatabase : RoomDatabase() {
                 CoroutineScope(Dispatchers.IO).launch {
                     if (isActive)
                         instance!!.insert(instance?.planDAO(),
-                            Plan("", "", "", "", 3))
+                            Plan("Kek", "Kek", "", "New Orlean", 3, "Category"))
                 }
             }
         }
     }
 
-    private suspend fun insert(planDao: PlanDao?, plan: Plan) {
+    private fun insert(planDao: PlanDao?, plan: Plan) {
         val job = CoroutineScope(Dispatchers.IO).launch {
             if (isActive)
             planDao?.insertPlan(plan)

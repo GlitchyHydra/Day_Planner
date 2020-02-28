@@ -1,4 +1,4 @@
-package com.example.weekplanner
+package com.example.weekplanner.activities
 
 import android.app.Activity
 import android.content.Intent
@@ -12,7 +12,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.weekplanner.PlannerAdapter
+import com.example.weekplanner.R
 import com.example.weekplanner.data.Plan
+import com.example.weekplanner.views.PlanViewModel
+import com.example.weekplanner.views.PlanViewModelFactory
 import kotlinx.android.synthetic.main.activity_main.*
 
 
@@ -30,8 +34,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         buttonAddNote.setOnClickListener {
-            startActivityForResult(Intent(this, AddingActivity::class.java)
-                , ADD_NOTE_REQUEST)
+            startActivityForResult(Intent(this, AddingActivity::class.java),
+                ADD_NOTE_REQUEST
+            )
         }
 
         recycler_view.layoutManager = LinearLayoutManager(this)
@@ -40,7 +45,10 @@ class MainActivity : AppCompatActivity() {
         val adapter = PlannerAdapter()
 
         //ViewModelProvider.NewInstanceFactory().create(PlanViewModel::class.java)
-        planViewModel = ViewModelProvider(this, PlanViewModelFactory(application)).get(PlanViewModel::class.java)
+        planViewModel = ViewModelProvider(this,
+            PlanViewModelFactory(application)
+        )
+            .get(PlanViewModel::class.java)
         planViewModel!!.getAllPlanes().observe(this, Observer<List<Plan>> {
             Toast.makeText(this, "", Toast.LENGTH_SHORT).show()
             adapter.submitList(it)
@@ -64,9 +72,10 @@ class MainActivity : AppCompatActivity() {
         }
         ).attachToRecyclerView(recycler_view)
 
-        adapter.setOnItemClickListener(object : PlannerAdapter.OnItemClickListener {
+        adapter.setOnItemClickListener(object :
+            PlannerAdapter.OnItemClickListener {
             override fun onItemClick(plan: Plan) {
-                var intent = Intent(baseContext, AddingActivity::class.java)
+                val intent = Intent(baseContext, AddingActivity::class.java)
                 intent.putExtra(AddingActivity.EXTRA_ID, plan.id)
                 intent.putExtra(AddingActivity.EXTRA_TITLE, plan.title)
                 intent.putExtra(AddingActivity.EXTRA_NOTE, plan.note)
@@ -74,7 +83,9 @@ class MainActivity : AppCompatActivity() {
                 intent.putExtra(AddingActivity.EXTRA_LOCATION, plan.location)
                 intent.putExtra(AddingActivity.EXTRA_PRIORITY, plan.priority)
 
-                startActivityForResult(intent, EDIT_NOTE_REQUEST)
+                startActivityForResult(intent,
+                    EDIT_NOTE_REQUEST
+                )
             }
         })
     }
@@ -89,6 +100,17 @@ class MainActivity : AppCompatActivity() {
             R.id.delete_all_notes -> {
                 planViewModel!!.deleteAll()
                 Toast.makeText(this, "All notes deleted!", Toast.LENGTH_SHORT).show()
+                true
+            }
+            R.id.go_to_stats -> {
+                val listOfStats = planViewModel!!.getAllStats()
+                val totalCount = listOfStats.size
+                val counts = listOf(listOfStats.filter { !it.isSolved }.size.toFloat(),
+                    listOfStats.filter { it.isSolved }.size.toFloat())
+                val intent = Intent(applicationContext, StatActivity::class.java)
+                intent.putExtra("total", totalCount)
+                intent.putExtra("counts", counts.toFloatArray())
+                startActivity(intent)
                 true
             }
             else -> {
@@ -106,7 +128,8 @@ class MainActivity : AppCompatActivity() {
                 data.getStringExtra(AddingActivity.EXTRA_NOTE),
                 data.getStringExtra(AddingActivity.EXTRA_DATE),
                 data.getStringExtra(AddingActivity.EXTRA_LOCATION),
-                data.getIntExtra(AddingActivity.EXTRA_PRIORITY, 1)
+                data.getIntExtra(AddingActivity.EXTRA_PRIORITY, 1),
+                data.getStringExtra(AddingActivity.EXTRA_CATEGORY)
             )
             planViewModel!!.insert(newPlan)
 
@@ -123,7 +146,8 @@ class MainActivity : AppCompatActivity() {
                 data.getStringExtra(AddingActivity.EXTRA_NOTE),
                 data.getStringExtra(AddingActivity.EXTRA_DATE),
                 data.getStringExtra(AddingActivity.EXTRA_LOCATION),
-                data.getIntExtra(AddingActivity.EXTRA_PRIORITY, 1)
+                data.getIntExtra(AddingActivity.EXTRA_PRIORITY, 1),
+                data.getStringExtra(AddingActivity.EXTRA_CATEGORY)
             )
             updateNote.id = data.getIntExtra(AddingActivity.EXTRA_ID, -1)
             planViewModel!!.update(updateNote)

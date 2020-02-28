@@ -1,11 +1,13 @@
-package com.example.weekplanner
+package com.example.weekplanner.views
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.weekplanner.data.PlannerRepository
 import com.example.weekplanner.data.Plan
+import com.example.weekplanner.data.Statistic
 
 class PlanViewModel(application: Application): AndroidViewModel(application) {
 
@@ -13,7 +15,8 @@ class PlanViewModel(application: Application): AndroidViewModel(application) {
     private val allPlans: LiveData<List<Plan>>
 
     init {
-        plannerRepository = PlannerRepository(application)
+        plannerRepository =
+            PlannerRepository(application)
         allPlans = plannerRepository.getAllPlans()
     }
 
@@ -26,6 +29,7 @@ class PlanViewModel(application: Application): AndroidViewModel(application) {
     }
 
     fun delete(plan: Plan) {
+        plannerRepository.insertStat(plan, true)
         plannerRepository.deletePlan(plan)
     }
 
@@ -35,6 +39,10 @@ class PlanViewModel(application: Application): AndroidViewModel(application) {
 
     fun deleteAll(){
         plannerRepository.deleteAll()
+    }
+
+    fun getAllStats(): List<Statistic> {
+        return plannerRepository.getAllStat()
     }
 }
 
