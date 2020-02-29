@@ -7,16 +7,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.weekplanner.repositories.PlannerRepository
 import com.example.weekplanner.data.Plan
+import kotlinx.coroutines.*
+import java.util.*
 
 class PlanViewModel(application: Application): AndroidViewModel(application) {
 
     private val plannerRepository: PlannerRepository
     private val allPlans: LiveData<List<Plan>>
+    private val viewModelJob = SupervisorJob()
+    private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
+    private val calendar get() = Calendar.getInstance()
 
     init {
         plannerRepository =
             PlannerRepository(application)
         allPlans = plannerRepository.getAllPlans()
+        uiScope.launch { checkAndDeleteFailed() }
     }
 
     fun getAllPlans(): LiveData<List<Plan>> {
@@ -41,6 +47,23 @@ class PlanViewModel(application: Application): AndroidViewModel(application) {
 
     fun deleteAll(){
         plannerRepository.deleteAll()
+    }
+
+    suspend fun checkAndDeleteFailed() {
+        withContext(Dispatchers.IO) {
+            while (isActive) {
+                val plans = allPlans.value
+                if (plans != null) {
+                    deleteFailed(plans.filter { calendar.timeInMillis >= it.date!! })
+                }
+                delay(1000)
+            }
+        }
+    }
+
+    override fun onCleared() {
+        uiScope.cancel()
+        super.onCleared()
     }
 
     /*fun getAllStats(): List<Statistic> {
