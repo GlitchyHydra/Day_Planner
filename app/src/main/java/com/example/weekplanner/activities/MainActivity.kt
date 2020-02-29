@@ -9,18 +9,18 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.weekplanner.adapters.PlannerAdapter
 import com.example.weekplanner.R
+import com.example.weekplanner.adapters.*
 import com.example.weekplanner.data.Plan
 import com.example.weekplanner.views.PlanViewModel
 import com.example.weekplanner.views.PlanViewModelFactory
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
 import java.util.*
-
 
 class MainActivity : AppCompatActivity() {
 
@@ -30,18 +30,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     var planViewModel: PlanViewModel? = null
-    val currentDateInMillis get() = Calendar.getInstance().timeInMillis
 
-    /*private fun checkAndDeleteFailed() {
-        CoroutineScope(Dispatchers.IO).launch {
-            while (isActive) {
-                val list = planViewModel!!.getAllPlans()
-                val failed = list.value!!.filter { it.date!! > currentDateInMillis }
-                planViewModel!!.deleteFailed(failed)
-                delay(1000)
-            }
-        }
-    }*/
+    private fun getDayOfYear(timeInMillis: Long): Int {
+        val calendar = Calendar.getInstance()
+        calendar.time = Date(timeInMillis)
+        return calendar.get(Calendar.DAY_OF_MONTH)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,7 +50,7 @@ class MainActivity : AppCompatActivity() {
         recycler_view.layoutManager = LinearLayoutManager(this)
         recycler_view.setHasFixedSize(true)
 
-        val adapter = PlannerAdapter()
+        val adapter = PlansAdapter()
 
         //ViewModelProvider.NewInstanceFactory().create(PlanViewModel::class.java)
         planViewModel = ViewModelProvider(this,
@@ -64,7 +58,22 @@ class MainActivity : AppCompatActivity() {
         ).get(PlanViewModel::class.java)
         planViewModel!!.getAllPlans().observe(this, Observer<List<Plan>> {
             Toast.makeText(this, "", Toast.LENGTH_SHORT).show()
-            adapter.submitList(it)
+            val newList = it.map { plan -> PlanItem(plan) }
+
+            val (calendarToday, calendarTomorrow) = Pair(Calendar.getInstance(),
+                getNextDay())
+            val total = mutableListOf<ListItem>(HeaderItem(calendarToday.time))
+            total.addAll(newList.filter { listItem -> getDayOfYear(listItem.plan.date!!) == calendarToday
+                .get(Calendar.DAY_OF_MONTH) })
+            total.add(HeaderItem(calendarTomorrow.time))
+            total.addAll(newList.filter { listItem -> getDayOfYear(listItem.plan.date!!) != calendarToday
+                .get(Calendar.DAY_OF_MONTH) })
+
+            val authorDiffUtilCallback = AuthorDiffUtilCallback(adapter.items, total)
+            val authorDiffResult = DiffUtil.calculateDiff(authorDiffUtilCallback)
+            adapter.items = total
+            authorDiffResult.dispatchUpdatesTo(adapter)
+            //adapter.submitList(it)
         })
 
         //checkAndDeleteFailed()
@@ -87,8 +96,8 @@ class MainActivity : AppCompatActivity() {
         }
         ).attachToRecyclerView(recycler_view)
 
-        adapter.setOnItemClickListener(object :
-            PlannerAdapter.OnItemClickListener {
+       /* adapter.setOnItemClickListener(object :
+            PlansAdapter.OnItemClickListener {
             override fun onItemClick(plan: Plan) {
                 val intent = Intent(baseContext, AddingActivity::class.java)
                 intent.putExtra(AddingActivity.EXTRA_ID, plan.id)
@@ -102,7 +111,7 @@ class MainActivity : AppCompatActivity() {
                     EDIT_NOTE_REQUEST
                 )
             }
-        })
+        })*/
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

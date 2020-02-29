@@ -3,6 +3,7 @@ package com.example.weekplanner.activities
 import android.app.DatePickerDialog
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.AdapterView
 import android.widget.Spinner
@@ -103,8 +104,12 @@ class StatActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         val calendar = Calendar.getInstance()
         val totalList = listOfStats.sortedBy { it.date!! }
 
+        Log.e("sorted", totalList.toString())
+
         val completedPlans = totalList.filter { it.isSolved }
         val failedPlans = totalList.filter { !it.isSolved }
+
+        Log.e("completed", completedPlans.toString())
 
         val completedCount = completedPlans.groupingBy { calendar.getMonth(Date(it.date!!)) }
             .eachCount()
@@ -113,10 +118,12 @@ class StatActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             .eachCount()
             .filter { it.value >= 1 }
 
+        Log.e("completedCounts", completedCount.toString())
+
         val listOfCounts = mutableListOf<CountOfTasks>()
         for (i in 1..12) {
-            CountOfTasks(failedCount[i] ?: 0,
-                completedCount[i] ?: 0, i)
+            listOfCounts.add(CountOfTasks(failedCount[i] ?: 0,
+                completedCount[i] ?: 0, i))
         }
 
         return listOfCounts
@@ -138,8 +145,8 @@ class StatActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
         val listOfCounts = mutableListOf<CountOfTasks>()
         for (i in 1..31) {
-            CountOfTasks(failedCount[i] ?: 0,
-                completedCount[i] ?: 0, i)
+            listOfCounts.add(CountOfTasks(failedCount[i] ?: 0,
+                completedCount[i] ?: 0, i))
         }
 
         return listOfCounts
@@ -161,8 +168,8 @@ class StatActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
         val listOfCounts = mutableListOf<CountOfTasks>()
         for (i in 1..7) {
-            CountOfTasks(failedCount[i] ?: 0,
-                completedCount[i] ?: 0, i)
+            listOfCounts.add(CountOfTasks(failedCount[i] ?: 0,
+                completedCount[i] ?: 0, i))
         }
 
         return listOfCounts
@@ -184,8 +191,8 @@ class StatActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
         val listOfCounts = mutableListOf<CountOfTasks>()
         for (i in 1..24) {
-            CountOfTasks(failedCount[i] ?: 0,
-                completedCount[i] ?: 0, i)
+            listOfCounts.add(CountOfTasks(failedCount[i] ?: 0,
+                completedCount[i] ?: 0, i))
         }
 
         return listOfCounts
@@ -201,7 +208,7 @@ class StatActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             yValues.add(BarEntry(i.toFloat(), listOf(val1, val2).toFloatArray()))
         }
 
-        val barDataSet = BarDataSet(yValues, "Stat USA")
+        val barDataSet = BarDataSet(yValues, "tasks")
         barDataSet.setDrawIcons(false)
         barDataSet.stackLabels = listOf("completed", "failed").toTypedArray()
         barDataSet.colors = listOf(ColorTemplate.JOYFUL_COLORS[0], ColorTemplate.JOYFUL_COLORS[1])
@@ -260,31 +267,55 @@ class StatActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long)
             = chooseItem(position)
 
+    private fun getYear(date: Long) : Int {
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = date
+        return calendar.get(Calendar.YEAR)
+    }
+
+    private fun getMonth(date: Long) : Int {
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = date
+        return calendar.get(Calendar.DAY_OF_MONTH)
+    }
+
+    private fun getWeekOfMonth(date: Long) : Int {
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = date
+        return calendar.get(Calendar.WEEK_OF_YEAR)
+    }
+
+    private fun getDayOfYear(date: Long) : Int {
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = date
+        return calendar.get(Calendar.DAY_OF_YEAR)
+    }
+
     private fun chooseItem(position: Int) {
         val calendar = Calendar.getInstance()
         when(position) {
             0 -> {
                 val list = createDayValues(allStats.filter {
-                    calendar.get(Calendar.DAY_OF_MONTH) == choosedDate.get(Calendar.DAY_OF_MONTH)
+                    getDayOfYear(it.date!!) == choosedDate.get(Calendar.DAY_OF_YEAR)
                 })
                 setBarChartData(list)
             }
             1 -> {
                 val list = createWeekValues(allStats
                     .filter {
-                        calendar.get(Calendar.WEEK_OF_MONTH) == choosedDate.get(Calendar.WEEK_OF_MONTH)
+                        getWeekOfMonth(it.date!!) == choosedDate.get(Calendar.WEEK_OF_YEAR)
                     })
                 setBarChartData(list)
             }
             2 -> {
                 val list = createMonthValues(allStats.filter {
-                    calendar.get(Calendar.MONTH) == choosedDate.get(Calendar.MONTH)
+                    getMonth(it.date!!) == choosedDate.get(Calendar.MONTH)
                 })
                 setBarChartData(list)
             }
             3 -> {
                 val list = createYearValues(allStats
-                    .filter { calendar.get(Calendar.YEAR) == choosedDate.get(Calendar.YEAR) })
+                    .filter { getYear(it.date!!) == choosedDate.get(Calendar.YEAR) })
                 setBarChartData(list)
             }
         }
