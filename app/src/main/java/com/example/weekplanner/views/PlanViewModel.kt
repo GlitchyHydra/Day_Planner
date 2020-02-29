@@ -5,9 +5,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.weekplanner.data.PlannerRepository
+import com.example.weekplanner.repositories.PlannerRepository
 import com.example.weekplanner.data.Plan
-import com.example.weekplanner.data.Statistic
 
 class PlanViewModel(application: Application): AndroidViewModel(application) {
 
@@ -20,7 +19,7 @@ class PlanViewModel(application: Application): AndroidViewModel(application) {
         allPlans = plannerRepository.getAllPlans()
     }
 
-    fun getAllPlanes(): LiveData<List<Plan>> {
+    fun getAllPlans(): LiveData<List<Plan>> {
         return allPlans
     }
 
@@ -28,22 +27,25 @@ class PlanViewModel(application: Application): AndroidViewModel(application) {
         plannerRepository.insertPlan(plan)
     }
 
-    fun delete(plan: Plan) {
-        plannerRepository.insertStat(plan, true)
-        plannerRepository.deletePlan(plan)
+    fun delete(plan: Plan, isSolved: Boolean) {
+        plannerRepository.deletePlan(plan, isSolved)
     }
 
     fun update(plan: Plan) {
         plannerRepository.updatePlan(plan)
     }
 
+    fun deleteFailed(plans: List<Plan>) {
+        plannerRepository.deleteFailed(plans)
+    }
+
     fun deleteAll(){
         plannerRepository.deleteAll()
     }
 
-    fun getAllStats(): List<Statistic> {
+    /*fun getAllStats(): List<Statistic> {
         return plannerRepository.getAllStat()
-    }
+    }*/
 }
 
 class PlanViewModelFactory(val application: Application) : ViewModelProvider.Factory {

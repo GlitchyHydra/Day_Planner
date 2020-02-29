@@ -1,19 +1,19 @@
-package com.example.weekplanner
+package com.example.weekplanner.adapters
 
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.EditText
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.example.weekplanner.R
 import com.example.weekplanner.data.Plan
-import com.example.weekplanner.data.PlannerDatabase
+import java.util.*
 
-class PlannerAdapter: ListAdapter<Plan, PlanViewHolder>(DIFF_CALLBACK){
+class PlannerAdapter: ListAdapter<Plan, PlanViewHolder>(
+    DIFF_CALLBACK
+){
 
     companion object {
         private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Plan>() {
@@ -69,7 +69,7 @@ class PlanViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     fun bind(plan: Plan) {
         titleView.text = plan.title
         noteView.text = plan.note
-        dateView.text = plan.date
+        dateView.text = Date(plan.date!!).toString()
         //locationView.text = plan.location
         priorityView.text = plan.priority.toString()
     }

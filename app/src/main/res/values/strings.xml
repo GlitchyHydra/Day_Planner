@@ -3,7 +3,7 @@
     <string name="title">Title</string>
     <string name="note">Note</string>
     <string name="category">Category</string>
-    <string name="tomorrow">Tomorrow</string>
+    <string name="tomorrow">Set on tomorrow</string>
     <string name="tomorrowAfter">After tomorrow</string>
     <string name="failed">Failed</string>
     <string name="completed">Completed</string>

@@ -4,12 +4,34 @@ import androidx.lifecycle.LiveData
 import androidx.room.*
 
 @Dao
-interface PlanDao {
+abstract class PlanDao {
+
     @Query("SELECT * FROM `plan`")
-    fun getAll(): LiveData<List<Plan>>
+    abstract fun getAll(): LiveData<List<Plan>>
 
     @Query("DELETE FROM `plan`")
-    fun deleteAll()
+    abstract fun deleteAll()
+
+    @Delete
+    abstract fun deleteFailed(plans: List<Plan>)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    abstract fun insertStat(statistic: Statistic)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    abstract fun insertStats(statistics: List<Statistic>)
+
+    @Transaction
+    open fun deleteFailedAndInsertInStat(plans: List<Plan>) {
+        deleteFailed(plans)
+        insertStats(plans.map { Statistic(it, false) }.toList())
+    }
+
+    @Transaction
+    open fun deletePlanAndInsertStat(plan: Plan, isSolved: Boolean) {
+        deletePlan(plan)
+        insertStat(Statistic(plan, isSolved))
+    }
 
     //для подгрузки из базы данных, когда выбираю конкретный список
     /*@Query(
@@ -24,11 +46,11 @@ interface PlanDao {
     fun findByListName(listName: String): List<Plan>*/
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insertPlan(plan: Plan)
+    abstract fun insertPlan(plan: Plan)
 
     @Delete
-    fun deletePlan(plan: Plan)
+    abstract fun deletePlan(plan: Plan)
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
-    fun updatePlan(plan: Plan)
+    abstract fun updatePlan(plan: Plan)
 }

@@ -8,12 +8,10 @@ interface StatDao {
     /**
      * Stat DAO
      */
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insertStat(statistic: Statistic)
 
     @Query("DELETE FROM 'statistic'")
     fun deleteAllStat()
 
     @Query("SELECT * FROM 'statistic'")
-    fun getAllStat(): List<Statistic>
+    fun getAllStat(): LiveData<List<Statistic>>
 }

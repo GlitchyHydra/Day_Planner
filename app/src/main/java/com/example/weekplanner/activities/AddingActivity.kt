@@ -10,8 +10,10 @@ import android.view.MenuItem
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.example.weekplanner.R
+import com.example.weekplanner.adapters.createArrayAdapter
 import kotlinx.android.synthetic.main.adding_layout.*
 import java.util.*
+
 
 
 class AddingActivity : AppCompatActivity() {
@@ -28,37 +30,32 @@ class AddingActivity : AppCompatActivity() {
     private val currentTimeInMillis get() = Calendar.getInstance().time.time
     private var priority = 0
     private var spinner: Spinner? = null
+    private var tomorrowRadio : RadioButton? = null
+
+    private val choosedDateAndTime = Calendar.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.adding_layout)
 
+        tomorrowRadio = findViewById(R.id.tomorrowRadio)
         spinner = findViewById(R.id.prioritySpinner)
-
-// Create an ArrayAdapter using the string array and a default spinner layout
-        val spinnerAdapter = ArrayAdapter.createFromResource(
-            this,
-            R.array.priority_array,
-            android.R.layout.simple_spinner_item
-        ).also { adapter ->
-            // Specify the layout to use when the list of choices appears
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            // Apply the adapter to the spinner
-            spinner?.adapter = adapter
-        }
+        createArrayAdapter(this, R.array.priority_array, spinner)
 
         supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_close)
 
-        findViewById<TextView>(R.id.editTime).setOnClickListener {
+        val timePickerText = findViewById<TextView>(R.id.editTime)
+        timePickerText.setOnClickListener {
             val calendar = Calendar.getInstance()
             val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
             val currentMinute = calendar.get(Calendar.MINUTE)
 
             val timePickerDialog = TimePickerDialog(this,
                 OnTimeSetListener { timePicker, hourOfDay, minutes ->
-                    findViewById<TextView>(R.id.editTime).setText(String.format("%02d:%02d", hourOfDay, minutes))
-                }, currentHour, currentMinute, false
-            )
+                    timePickerText.text = String.format("%02d:%02d", hourOfDay, minutes)
+                    choosedDateAndTime.set(Calendar.HOUR_OF_DAY, hourOfDay)
+                    choosedDateAndTime.set(Calendar.MINUTE, minutes)
+                }, currentHour, currentMinute, true)
 
             timePickerDialog.show()
         }
@@ -96,11 +93,18 @@ class AddingActivity : AppCompatActivity() {
             return
         }
 
+        if (tomorrowRadio!!.isChecked) {
+            choosedDateAndTime.add(Calendar.DAY_OF_YEAR, 1)
+        }
+
         val data = Intent().apply {
             putExtra(EXTRA_TITLE, edit_text_title.text.toString())
             putExtra(EXTRA_NOTE, edit_text_note.text.toString())
             putExtra(EXTRA_PRIORITY, spinner?.selectedItemPosition)
-            dayPicker.text
+            putExtra(EXTRA_DATE, choosedDateAndTime.timeInMillis)
+            //putExtra(EXTRA_DATE, dayPicker)
+            //putExtra(EXTRA_LOCATION, )
+
             if (intent.getIntExtra(EXTRA_ID, -1) != -1) {
                 putExtra(
                     EXTRA_ID, intent.getIntExtra(

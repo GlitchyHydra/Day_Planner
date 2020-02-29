@@ -7,6 +7,19 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.util.*
+
+class Converters {
+    @TypeConverter
+    fun fromTimestamp(value: Long): Date? {
+        return Date(value)
+    }
+
+    @TypeConverter
+    fun dateToTimestamp(date: Date): Long {
+        return date.getTime()
+    }
+}
 
 /**
  *  Entity for storing a active tasks.
@@ -16,7 +29,7 @@ import kotlinx.coroutines.launch
 data class Plan(
     @ColumnInfo(name = "Title") val title: String?,
     @ColumnInfo(name = "Note") val note: String?,
-    @ColumnInfo(name = "Date") val date: String?,
+    @ColumnInfo(name = "Date") val date: Long?,
     @ColumnInfo(name = "Location") val location: String?,
     @ColumnInfo(name = "Priority") val priority: Int?,
     @ColumnInfo(name = "Category") val category: String?
@@ -32,16 +45,32 @@ data class Plan(
 @Entity(tableName = "statistic")
 data class Statistic(
     @ColumnInfo(name = "isSolved") val isSolved: Boolean,
-    @ColumnInfo(name = "Date") val date: String?,
+    @ColumnInfo(name = "Date") val date: Long?,
     @ColumnInfo(name = "Location") val location: String?,
     @ColumnInfo(name = "Priority") val priority: Int?,
     @ColumnInfo(name = "Category") val category: String?
 ) {
     @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "Stat_id") var id: Int = 0
+    @ColumnInfo(name = "Stat_id")
+    var id: Int = 0
+
+    constructor(plan: Plan, isSolved: Boolean) : this(
+        isSolved, plan.date,
+        plan.location, plan.priority, plan.category
+    )
+
+    override fun equals(other: Any?): Boolean {
+        val stat = other as Statistic
+        val calendar = Calendar.getInstance()
+        calendar.time = Date(stat.date!!)
+        val otherCalendar = calendar
+        calendar.time = Date(this.date!!)
+
+        return otherCalendar == calendar && stat.isSolved == this.isSolved
+    }
 }
 
-@Database(entities = [Plan::class, Statistic::class], version = 4)
+@Database(entities = [Plan::class, Statistic::class], version = 1)
 abstract class PlannerDatabase : RoomDatabase() {
 
     abstract fun planDAO(): PlanDao
@@ -74,8 +103,11 @@ abstract class PlannerDatabase : RoomDatabase() {
                 super.onCreate(db)
                 CoroutineScope(Dispatchers.IO).launch {
                     if (isActive)
-                        instance!!.insert(instance?.planDAO(),
-                            Plan("Kek", "Kek", "", "New Orlean", 3, "Category"))
+                        instance!!.insert(
+                            instance?.planDAO(),
+                            Plan("Kek", "Kek", Calendar.getInstance().timeInMillis,
+                                "New Orlean", 3, "Category")
+                        )
                 }
             }
         }
@@ -84,7 +116,7 @@ abstract class PlannerDatabase : RoomDatabase() {
     private fun insert(planDao: PlanDao?, plan: Plan) {
         val job = CoroutineScope(Dispatchers.IO).launch {
             if (isActive)
-            planDao?.insertPlan(plan)
+                planDao?.insertPlan(plan)
         }
     }
 }

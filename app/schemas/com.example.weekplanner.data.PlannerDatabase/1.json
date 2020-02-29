@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "8078af3798dda85beec4d47f4d435384",
+    "identityHash": "22f7b8411223002d873858808ff1a907",
     "entities": [
       {
         "tableName": "plan",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `Title` TEXT, `Note` TEXT, `Date` TEXT, `Location` TEXT, `Priority` INTEGER, `Category` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `Title` TEXT, `Note` TEXT, `Date` INTEGER, `Location` TEXT, `Priority` INTEGER, `Category` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -29,7 +29,7 @@
           {
             "fieldPath": "date",
             "columnName": "Date",
-            "affinity": "TEXT",
+            "affinity": "INTEGER",
             "notNull": false
           },
           {
@@ -59,11 +59,61 @@
         },
         "indices": [],
         "foreignKeys": []
+      },
+      {
+        "tableName": "statistic",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`Stat_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `isSolved` INTEGER NOT NULL, `Date` INTEGER, `Location` TEXT, `Priority` INTEGER, `Category` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "Stat_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isSolved",
+            "columnName": "isSolved",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "Date",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "location",
+            "columnName": "Location",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "priority",
+            "columnName": "Priority",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "category",
+            "columnName": "Category",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "Stat_id"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": []
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"8078af3798dda85beec4d47f4d435384\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"22f7b8411223002d873858808ff1a907\")"
     ]
   }
 }

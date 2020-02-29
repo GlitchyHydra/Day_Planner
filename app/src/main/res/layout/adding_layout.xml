@@ -67,25 +67,23 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <ToggleButton
-                    android:id="@+id/dayPicker"
-                    android:layout_width="200dp"
-                    android:layout_height="fill_parent"
-                    android:background="#00B93030"
-                    android:backgroundTint="#00FFFFFF"
-                    android:text="Day"
-                    android:textOff="@string/tomorrow"
-                    android:textOn="@string/tomorrowAfter" />
+                <RadioButton
+                    android:id="@+id/tomorrowRadio"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tomorrow"
+                    android:textSize="24sp" />
 
                 <TextView
                     android:id="@+id/editTime"
                     android:layout_width="match_parent"
                     android:layout_height="fill_parent"
                     android:ems="10"
+                    android:gravity="center"
                     android:hint="00:00"
                     android:inputType="time"
                     android:textAlignment="center"
-                    android:textSize="18sp" />
+                    android:textSize="24sp" />
             </LinearLayout>
         </LinearLayout>
 

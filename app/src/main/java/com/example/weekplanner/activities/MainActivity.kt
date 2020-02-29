@@ -12,12 +12,14 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.weekplanner.PlannerAdapter
+import com.example.weekplanner.adapters.PlannerAdapter
 import com.example.weekplanner.R
 import com.example.weekplanner.data.Plan
 import com.example.weekplanner.views.PlanViewModel
 import com.example.weekplanner.views.PlanViewModelFactory
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.*
+import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -28,6 +30,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     var planViewModel: PlanViewModel? = null
+    val currentDateInMillis get() = Calendar.getInstance().timeInMillis
+
+    /*private fun checkAndDeleteFailed() {
+        CoroutineScope(Dispatchers.IO).launch {
+            while (isActive) {
+                val list = planViewModel!!.getAllPlans()
+                val failed = list.value!!.filter { it.date!! > currentDateInMillis }
+                planViewModel!!.deleteFailed(failed)
+                delay(1000)
+            }
+        }
+    }*/
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,12 +61,13 @@ class MainActivity : AppCompatActivity() {
         //ViewModelProvider.NewInstanceFactory().create(PlanViewModel::class.java)
         planViewModel = ViewModelProvider(this,
             PlanViewModelFactory(application)
-        )
-            .get(PlanViewModel::class.java)
-        planViewModel!!.getAllPlanes().observe(this, Observer<List<Plan>> {
+        ).get(PlanViewModel::class.java)
+        planViewModel!!.getAllPlans().observe(this, Observer<List<Plan>> {
             Toast.makeText(this, "", Toast.LENGTH_SHORT).show()
             adapter.submitList(it)
         })
+
+        //checkAndDeleteFailed()
 
         recycler_view.adapter = adapter
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0,
@@ -66,7 +81,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                planViewModel!!.delete(adapter.getPlanByPosition(viewHolder.adapterPosition))
+                planViewModel!!.delete(adapter.getPlanByPosition(viewHolder.adapterPosition), true)
                 Toast.makeText(baseContext, "Note Deleted!", Toast.LENGTH_SHORT).show()
             }
         }
@@ -103,13 +118,7 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             R.id.go_to_stats -> {
-                val listOfStats = planViewModel!!.getAllStats()
-                val totalCount = listOfStats.size
-                val counts = listOf(listOfStats.filter { !it.isSolved }.size.toFloat(),
-                    listOfStats.filter { it.isSolved }.size.toFloat())
                 val intent = Intent(applicationContext, StatActivity::class.java)
-                intent.putExtra("total", totalCount)
-                intent.putExtra("counts", counts.toFloatArray())
                 startActivity(intent)
                 true
             }
@@ -126,7 +135,7 @@ class MainActivity : AppCompatActivity() {
             val newPlan = Plan(
                 data!!.getStringExtra(AddingActivity.EXTRA_TITLE),
                 data.getStringExtra(AddingActivity.EXTRA_NOTE),
-                data.getStringExtra(AddingActivity.EXTRA_DATE),
+                data.getLongExtra(AddingActivity.EXTRA_DATE, Calendar.getInstance().timeInMillis),
                 data.getStringExtra(AddingActivity.EXTRA_LOCATION),
                 data.getIntExtra(AddingActivity.EXTRA_PRIORITY, 1),
                 data.getStringExtra(AddingActivity.EXTRA_CATEGORY)
@@ -144,7 +153,7 @@ class MainActivity : AppCompatActivity() {
             val updateNote = Plan(
                 data!!.getStringExtra(AddingActivity.EXTRA_TITLE),
                 data.getStringExtra(AddingActivity.EXTRA_NOTE),
-                data.getStringExtra(AddingActivity.EXTRA_DATE),
+                data.getLongExtra(AddingActivity.EXTRA_DATE, Calendar.getInstance().timeInMillis),
                 data.getStringExtra(AddingActivity.EXTRA_LOCATION),
                 data.getIntExtra(AddingActivity.EXTRA_PRIORITY, 1),
                 data.getStringExtra(AddingActivity.EXTRA_CATEGORY)
