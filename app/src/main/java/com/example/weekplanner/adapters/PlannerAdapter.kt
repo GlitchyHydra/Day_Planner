@@ -4,6 +4,7 @@ import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -83,19 +84,18 @@ class PlanViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         titleView.text = plan.title
         noteView.text = plan.note
         //locationView.text = plan.location
-        priorityView.text = plan.priority.toString()
     }
 
     val titleView: TextView
     val noteView: TextView
     //val locationView: TextView
-    val priorityView: TextView
+    val priorityView: ImageView
 
     init {
         titleView = view.findViewById(R.id.text_view_title)
         noteView = view.findViewById(R.id.text_view_note)
         //locationView = view.findViewById(R.id.text_view_location)
-        priorityView = view.findViewById(R.id.text_view_priority)
+        priorityView = view.findViewById(R.id.imageViewPriority)
     }
 }
 
@@ -106,7 +106,9 @@ fun getNextDay(): Calendar {
 }
 
 
-class PlansAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class PlansAdapter(val colorNormal: Int,
+                   val colorImportant: Int,
+                   val colorVeryImportant: Int) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private class HeaderViewHolder(itemView: View) :
         RecyclerView.ViewHolder(itemView) {
@@ -123,13 +125,13 @@ class PlansAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         val titleView: TextView
         val noteView: TextView
         //val locationView: TextView
-        val priorityView: TextView
+        val priorityView: ImageView
 
         init {
             titleView = itemView.findViewById(R.id.text_view_title)
             noteView = itemView.findViewById(R.id.text_view_note)
             //locationView = itemView.findViewById(R.id.text_view_location)
-            priorityView = itemView.findViewById(R.id.text_view_priority)
+            priorityView = itemView.findViewById(R.id.imageViewPriority)
         }
     }
 
@@ -177,7 +179,13 @@ class PlansAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 holder.titleView.text = planItem.plan.title
                 holder.noteView.text = planItem.plan.note
                 //locationView.text = plan.location
-                holder.priorityView.text = planItem.plan.priority.toString()
+                val color = when(planItem.plan.priority) {
+                    0 -> colorNormal
+                    1 -> colorImportant
+                    2 -> colorVeryImportant
+                    else -> colorNormal
+                }
+                holder.priorityView.setColorFilter(color, android.graphics.PorterDuff.Mode.SRC_IN)
             }
             else -> throw IllegalStateException("unsupported item type")
         }

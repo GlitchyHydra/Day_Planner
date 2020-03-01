@@ -7,6 +7,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DiffUtil
@@ -19,7 +20,6 @@ import com.example.weekplanner.data.Plan
 import com.example.weekplanner.views.PlanViewModel
 import com.example.weekplanner.views.PlanViewModelFactory
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.*
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
@@ -42,7 +42,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         buttonAddNote.setOnClickListener {
-            startActivityForResult(Intent(this, AddingActivity::class.java),
+            startActivityForResult(
+                Intent(this, AddingActivity::class.java),
                 ADD_NOTE_REQUEST
             )
         }
@@ -50,24 +51,42 @@ class MainActivity : AppCompatActivity() {
         recycler_view.layoutManager = LinearLayoutManager(this) as RecyclerView.LayoutManager?
         recycler_view.setHasFixedSize(true)
 
-        val adapter = PlansAdapter()
+
+        val adapter = PlansAdapter(
+            ContextCompat.getColor(applicationContext, R.color.colorNormal),
+            ContextCompat.getColor(applicationContext, R.color.colorImportant),
+            ContextCompat.getColor(applicationContext, R.color.colorVeryImportant)
+        )
 
         //ViewModelProvider.NewInstanceFactory().create(PlanViewModel::class.java)
-        planViewModel = ViewModelProvider(this,
+        planViewModel = ViewModelProvider(
+            this,
             PlanViewModelFactory(application)
         ).get(PlanViewModel::class.java)
         planViewModel!!.getAllPlans().observe(this, Observer<List<Plan>> {
             Toast.makeText(this, "", Toast.LENGTH_SHORT).show()
             val newList = it.map { plan -> PlanItem(plan) }
 
-            val (calendarToday, calendarTomorrow) = Pair(Calendar.getInstance(),
-                getNextDay())
-            val total = mutableListOf<ListItem>(HeaderItem(getString(R.string.today)))
-            total.addAll(newList.filter { listItem -> getDayOfYear(listItem.plan.date!!) == calendarToday
-                .get(Calendar.DAY_OF_MONTH) })
-            total.add(HeaderItem(getString(R.string.tomorrow)))
-            total.addAll(newList.filter { listItem -> getDayOfYear(listItem.plan.date!!) != calendarToday
-                .get(Calendar.DAY_OF_MONTH) })
+            val calendarToday = Calendar.getInstance()
+
+            val total = mutableListOf<ListItem>()
+
+            val todayPlans = newList.filter { listItem ->
+                getDayOfYear(listItem.plan.date!!) == calendarToday
+                    .get(Calendar.DAY_OF_MONTH)
+            }
+            if (todayPlans.isNotEmpty()) {
+                total.add(HeaderItem(getString(R.string.today)))
+                total.addAll(todayPlans)
+            }
+            val tomorrowPlans = newList.filter { listItem ->
+                getDayOfYear(listItem.plan.date!!) != calendarToday
+                    .get(Calendar.DAY_OF_MONTH)
+            }
+            if (tomorrowPlans.isNotEmpty()) {
+                total.add(HeaderItem(getString(R.string.tomorrow)))
+                total.addAll(tomorrowPlans)
+            }
 
             val authorDiffUtilCallback = AuthorDiffUtilCallback(adapter.items, total)
             val authorDiffResult = DiffUtil.calculateDiff(authorDiffUtilCallback)
@@ -79,8 +98,10 @@ class MainActivity : AppCompatActivity() {
         //checkAndDeleteFailed()
 
         recycler_view.adapter = adapter
-        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0,
-            ItemTouchHelper.LEFT.or(ItemTouchHelper.RIGHT)) {
+        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
+            0,
+            ItemTouchHelper.LEFT.or(ItemTouchHelper.RIGHT)
+        ) {
             override fun onMove(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,
@@ -96,22 +117,22 @@ class MainActivity : AppCompatActivity() {
         }
         ).attachToRecyclerView(recycler_view)
 
-       /* adapter.setOnItemClickListener(object :
-            PlansAdapter.OnItemClickListener {
-            override fun onItemClick(plan: Plan) {
-                val intent = Intent(baseContext, AddingActivity::class.java)
-                intent.putExtra(AddingActivity.EXTRA_ID, plan.id)
-                intent.putExtra(AddingActivity.EXTRA_TITLE, plan.title)
-                intent.putExtra(AddingActivity.EXTRA_NOTE, plan.note)
-                intent.putExtra(AddingActivity.EXTRA_DATE, plan.date)
-                intent.putExtra(AddingActivity.EXTRA_LOCATION, plan.location)
-                intent.putExtra(AddingActivity.EXTRA_PRIORITY, plan.priority)
+        /* adapter.setOnItemClickListener(object :
+             PlansAdapter.OnItemClickListener {
+             override fun onItemClick(plan: Plan) {
+                 val intent = Intent(baseContext, AddingActivity::class.java)
+                 intent.putExtra(AddingActivity.EXTRA_ID, plan.id)
+                 intent.putExtra(AddingActivity.EXTRA_TITLE, plan.title)
+                 intent.putExtra(AddingActivity.EXTRA_NOTE, plan.note)
+                 intent.putExtra(AddingActivity.EXTRA_DATE, plan.date)
+                 intent.putExtra(AddingActivity.EXTRA_LOCATION, plan.location)
+                 intent.putExtra(AddingActivity.EXTRA_PRIORITY, plan.priority)
 
-                startActivityForResult(intent,
-                    EDIT_NOTE_REQUEST
-                )
-            }
-        })*/
+                 startActivityForResult(intent,
+                     EDIT_NOTE_REQUEST
+                 )
+             }
+         })*/
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
