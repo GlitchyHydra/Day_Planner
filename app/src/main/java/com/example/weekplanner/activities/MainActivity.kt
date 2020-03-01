@@ -22,6 +22,7 @@ import com.example.weekplanner.views.PlanViewModelFactory
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 
+
 class MainActivity : AppCompatActivity() {
 
     companion object {
@@ -51,11 +52,11 @@ class MainActivity : AppCompatActivity() {
         recycler_view.layoutManager = LinearLayoutManager(this) as RecyclerView.LayoutManager?
         recycler_view.setHasFixedSize(true)
 
-
         val adapter = PlansAdapter(
             ContextCompat.getColor(applicationContext, R.color.colorNormal),
             ContextCompat.getColor(applicationContext, R.color.colorImportant),
-            ContextCompat.getColor(applicationContext, R.color.colorVeryImportant)
+            ContextCompat.getColor(applicationContext, R.color.colorVeryImportant),
+            this
         )
 
         //ViewModelProvider.NewInstanceFactory().create(PlanViewModel::class.java)
@@ -92,10 +93,7 @@ class MainActivity : AppCompatActivity() {
             val authorDiffResult = DiffUtil.calculateDiff(authorDiffUtilCallback)
             adapter.items = total
             authorDiffResult.dispatchUpdatesTo(adapter)
-            //adapter.submitList(it)
         })
-
-        //checkAndDeleteFailed()
 
         recycler_view.adapter = adapter
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
@@ -108,6 +106,28 @@ class MainActivity : AppCompatActivity() {
                 target: RecyclerView.ViewHolder
             ): Boolean {
                 return false
+            }
+
+            override fun getMovementFlags(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder
+            ): Int {
+                if (viewHolder is PlansAdapter.HeaderViewHolder) {
+                    val dragFlags =
+                        ItemTouchHelper.UP or ItemTouchHelper.DOWN or ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
+                    val swipeFlags = 0
+                    return ItemTouchHelper.Callback.makeMovementFlags(
+                        dragFlags,
+                        swipeFlags
+                    )
+                } else {
+                    val dragFlags = ItemTouchHelper.UP or ItemTouchHelper.DOWN
+                    val swipeFlags = ItemTouchHelper.START or ItemTouchHelper.END
+                    return ItemTouchHelper.Callback.makeMovementFlags(
+                        dragFlags,
+                        swipeFlags
+                    )
+                }
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {

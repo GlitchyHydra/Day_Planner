@@ -16,7 +16,6 @@ import kotlinx.android.synthetic.main.adding_layout.*
 import java.util.*
 
 
-
 class AddingActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_ID = "com.week_planner.java.EXTRA_ID"
@@ -29,7 +28,7 @@ class AddingActivity : AppCompatActivity() {
     }
 
     private var radioGroup: RadioGroup? = null
-    private var tomorrowRadio : RadioButton? = null
+    private var tomorrowRadio: RadioButton? = null
 
     private val choosedDateAndTime = Calendar.getInstance()
 
@@ -48,12 +47,14 @@ class AddingActivity : AppCompatActivity() {
             val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
             val currentMinute = calendar.get(Calendar.MINUTE)
 
-            val timePickerDialog = TimePickerDialog(this,
+            val timePickerDialog = TimePickerDialog(
+                this,
                 OnTimeSetListener { timePicker, hourOfDay, minutes ->
                     timePickerText.text = String.format("%02d:%02d", hourOfDay, minutes)
                     choosedDateAndTime.set(Calendar.HOUR_OF_DAY, hourOfDay)
                     choosedDateAndTime.set(Calendar.MINUTE, minutes)
-                }, currentHour, currentMinute, true)
+                }, currentHour, currentMinute, true
+            )
 
             timePickerDialog.show()
         }
@@ -62,6 +63,13 @@ class AddingActivity : AppCompatActivity() {
             title = "Edit Note"
             edit_text_title.setText(intent.getStringExtra(EXTRA_TITLE))
             edit_text_note.setText(intent.getStringExtra(EXTRA_NOTE))
+            choosedDateAndTime.time = Date(intent.getLongExtra(EXTRA_DATE, 0))
+            val hourOfDay = choosedDateAndTime.get(Calendar.HOUR_OF_DAY)
+            val minutes = choosedDateAndTime.get(Calendar.MINUTE)
+            editTime.text = String.format("%02d:%02d", hourOfDay, minutes)
+            val calendarToday = Calendar.getInstance()
+            tomorrowRadio?.isChecked =
+                calendarToday.get(Calendar.DAY_OF_MONTH) != choosedDateAndTime.get(Calendar.DAY_OF_MONTH)
             val button = radioGroup?.getChildAt(intent.getIntExtra(EXTRA_PRIORITY, 0))
             (button as RadioButton).isChecked = true
         } else {
@@ -87,7 +95,8 @@ class AddingActivity : AppCompatActivity() {
 
     private fun saveNote() {
         if (edit_text_title.text.toString().trim().isBlank() ||
-            edit_text_note.text.toString().trim().isBlank()) {
+            edit_text_note.text.toString().trim().isBlank()
+        ) {
             Toast.makeText(this, "Can not insert empty note!", Toast.LENGTH_SHORT).show()
             return
         }
@@ -105,13 +114,13 @@ class AddingActivity : AppCompatActivity() {
             putExtra(EXTRA_NOTE, edit_text_note.text.toString())
             putExtra(EXTRA_PRIORITY, idx)
             putExtra(EXTRA_DATE, choosedDateAndTime.timeInMillis)
-            //putExtra(EXTRA_DATE, dayPicker)
-            //putExtra(EXTRA_LOCATION, )
 
             if (intent.getIntExtra(EXTRA_ID, -1) != -1) {
                 putExtra(
                     EXTRA_ID, intent.getIntExtra(
-                        EXTRA_ID, -1))
+                        EXTRA_ID, -1
+                    )
+                )
             }
         }
 

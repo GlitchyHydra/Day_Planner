@@ -1,116 +1,44 @@
 package com.example.weekplanner.adapters
 
-import android.text.format.DateUtils
+import android.content.Context
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.cardview.widget.CardView
+import android.app.Activity
+import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.weekplanner.R
+import com.example.weekplanner.activities.AddingActivity
+import com.example.weekplanner.activities.MainActivity.Companion.EDIT_NOTE_REQUEST
 import com.example.weekplanner.data.Plan
 import java.util.Collections.emptyList
-import com.example.weekplanner.adapters.ListItem
-import java.time.Month
-import java.util.*
 
-class AuthorDiffUtilCallback(private val oldList: List<ListItem>, private val newList: List<ListItem>): DiffUtil.Callback() {
+class AuthorDiffUtilCallback(
+    private val oldList: List<ListItem>,
+    private val newList: List<ListItem>
+) : DiffUtil.Callback() {
     override fun getOldListSize() = oldList.size
     override fun getNewListSize() = newList.size
-    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int)
-            = true//oldList[oldItemPosition].plan.id == newList[newItemPosition].plan.id
-    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int)
-            = oldList[oldItemPosition] == newList[newItemPosition]
-}
-/*
-class PlannerAdapter: ListAdapter<Plan, PlanViewHolder>(
-    DIFF_CALLBACK
-){
+    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int) =
+        true//oldList[oldItemPosition].plan.id == newList[newItemPosition].plan.id
 
-    companion object {
-        private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Plan>() {
-            override fun areItemsTheSame(oldItem: Plan, newItem: Plan): Boolean {
-                return oldItem.id == newItem.id
-            }
-
-            override fun areContentsTheSame(oldItem: Plan, newItem: Plan): Boolean {
-                return oldItem.title == newItem.title && oldItem.note == newItem.note
-                        && oldItem.priority == newItem.priority
-            }
-        }
-    }
-
-    private var listener: OnItemClickListener? = null
-
-    interface OnItemClickListener {
-        fun onItemClick(plan: Plan)
-    }
-
-    fun setOnItemClickListener(listener: OnItemClickListener) {
-        this.listener = listener
-    }
-
-    fun getPlanByPosition(position: Int): Plan = getItem(position)
-
-    /*override fun getItemViewType(position: Int): Int {
-        return bibDatabase.getEntry(position % countOfEntries).type.ordinal
-    }*/
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlanViewHolder =
-        PlanViewHolder.from(parent)
-
-    override fun onBindViewHolder(holder: PlanViewHolder, position: Int) {
-        val plan = getItem(position)
-        holder.bind(plan)
-        /*when (note.type) {
-
-        }*/
-    }
-}
-*/
-class PlanViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-
-    companion object {
-        fun from(parent: ViewGroup) : PlanViewHolder {
-            val itemView = LayoutInflater.from(parent.context)
-                .inflate(R.layout.plan, parent, false)
-            return PlanViewHolder(itemView)
-        }
-    }
-
-    fun bind(plan: Plan) {
-        titleView.text = plan.title
-        noteView.text = plan.note
-        //locationView.text = plan.location
-    }
-
-    val titleView: TextView
-    val noteView: TextView
-    //val locationView: TextView
-    val priorityView: ImageView
-
-    init {
-        titleView = view.findViewById(R.id.text_view_title)
-        noteView = view.findViewById(R.id.text_view_note)
-        //locationView = view.findViewById(R.id.text_view_location)
-        priorityView = view.findViewById(R.id.imageViewPriority)
-    }
+    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int) =
+        oldList[oldItemPosition] == newList[newItemPosition]
 }
 
-fun getNextDay(): Calendar {
-    val calendar = Calendar.getInstance()
-    calendar.add(Calendar.DAY_OF_YEAR, 1)
-    return calendar
-}
+class PlansAdapter(
+    val colorNormal: Int,
+    val colorImportant: Int,
+    val colorVeryImportant: Int,
+    val activityContext: Context
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-
-class PlansAdapter(val colorNormal: Int,
-                   val colorImportant: Int,
-                   val colorVeryImportant: Int) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-
-    private class HeaderViewHolder(itemView: View) :
+    class HeaderViewHolder(itemView: View) :
         RecyclerView.ViewHolder(itemView) {
         var txt_header: TextView
 
@@ -119,19 +47,21 @@ class PlansAdapter(val colorNormal: Int,
         }
     }
 
-    private class PlanViewHolder(itemView: View) :
+    class PlanViewHolder(itemView: View) :
         RecyclerView.ViewHolder(itemView) {
 
         val titleView: TextView
         val noteView: TextView
         //val locationView: TextView
         val priorityView: ImageView
+        val planCardView: CardView
 
         init {
             titleView = itemView.findViewById(R.id.text_view_title)
             noteView = itemView.findViewById(R.id.text_view_note)
             //locationView = itemView.findViewById(R.id.text_view_location)
             priorityView = itemView.findViewById(R.id.imageViewPriority)
+            planCardView = itemView.findViewById(R.id.plan_card_view)
         }
     }
 
@@ -178,8 +108,20 @@ class PlansAdapter(val colorNormal: Int,
 
                 holder.titleView.text = planItem.plan.title
                 holder.noteView.text = planItem.plan.note
+                val plan = planItem.plan
+                holder.planCardView.setOnClickListener {
+                    val intent = Intent(activityContext, AddingActivity::class.java)
+                    intent.putExtra(AddingActivity.EXTRA_ID, plan.id)
+                    intent.putExtra(AddingActivity.EXTRA_TITLE, plan.title)
+                    intent.putExtra(AddingActivity.EXTRA_NOTE, plan.note)
+                    intent.putExtra(AddingActivity.EXTRA_DATE, plan.date)
+                    intent.putExtra(AddingActivity.EXTRA_LOCATION, plan.location)
+                    intent.putExtra(AddingActivity.EXTRA_PRIORITY, plan.priority)
+
+                    (activityContext as Activity).startActivityForResult(intent, EDIT_NOTE_REQUEST)
+                }
                 //locationView.text = plan.location
-                val color = when(planItem.plan.priority) {
+                val color = when (planItem.plan.priority) {
                     0 -> colorNormal
                     1 -> colorImportant
                     2 -> colorVeryImportant
