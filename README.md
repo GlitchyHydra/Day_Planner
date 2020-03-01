@@ -11,3 +11,5 @@ The main screen.
 The add screen. 
 
 ![alt text](https://i.imgur.com/CeB09zt.jpg)
+
+Statistic screen will be add later, because second diagram need to be reworked.
