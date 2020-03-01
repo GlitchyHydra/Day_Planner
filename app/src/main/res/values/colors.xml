@@ -5,4 +5,18 @@
     <color name="colorAccent">#CDDC39</color>
     <color name="colorBackEdit">#E9E7E7</color>
     <color name="colorHeader">#a5d6a7</color>
+    <color name="colorNormal">#02BF35</color>
+    <color name="colorImportant">#FF9203</color>
+    <color name="colorVeryImportant">#FF03DD</color>
+    <color name="white">#FFFFFF</color>
+
+    <color name="yellow1">#FFEA00</color>
+    <color name="yellow2">#FFC400</color>
+    <color name="orange4">#FF9100</color>
+    <color name="orange5">#FF3D00</color>
+    <color name="grey05">#4D4C4C</color>
+    <color name="blue2">#00B0FF</color>
+    <color name="blue25">#2979FF</color>
+
+    <color name="borderButton">#A3A2A2</color>
 </resources>

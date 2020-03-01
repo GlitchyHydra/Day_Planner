@@ -10,7 +10,7 @@ import com.example.weekplanner.data.Plan
 import kotlinx.coroutines.*
 import java.util.*
 
-class PlanViewModel(application: Application): AndroidViewModel(application) {
+class PlanViewModel(application: Application) : AndroidViewModel(application) {
 
     private val plannerRepository: PlannerRepository
     private val allPlans: LiveData<List<Plan>>
@@ -45,17 +45,26 @@ class PlanViewModel(application: Application): AndroidViewModel(application) {
         plannerRepository.deleteFailed(plans)
     }
 
-    fun deleteAll(){
+    fun deleteAll() {
         plannerRepository.deleteAll()
     }
 
-    suspend fun checkAndDeleteFailed() {
+    private fun compareCalendars(date: Long, calendarLimit: Calendar): Boolean {
+        val calendarCurrent = Calendar.getInstance()
+        calendarCurrent.time = Date(date)
+        val daysEqualOrMore = calendarCurrent.get(Calendar.DAY_OF_YEAR) >=
+                calendarLimit.get(Calendar.DAY_OF_YEAR)
+        val yearEqual = calendarCurrent.get(Calendar.YEAR) ==
+                calendarLimit.get(Calendar.YEAR)
+        return !daysEqualOrMore || !yearEqual
+    }
+
+    private suspend fun checkAndDeleteFailed() {
         withContext(Dispatchers.IO) {
             while (isActive) {
                 val plans = allPlans.value
-                if (plans != null) {
-                    deleteFailed(plans.filter { calendar.timeInMillis >= it.date!! })
-                }
+                if (plans != null)
+                    deleteFailed(plans.filter { compareCalendars(it.date!!, calendar) })
                 delay(1000)
             }
         }

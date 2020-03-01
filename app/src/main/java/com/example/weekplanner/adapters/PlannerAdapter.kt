@@ -82,21 +82,18 @@ class PlanViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     fun bind(plan: Plan) {
         titleView.text = plan.title
         noteView.text = plan.note
-        dateView.text = Date(plan.date!!).toString()
         //locationView.text = plan.location
         priorityView.text = plan.priority.toString()
     }
 
     val titleView: TextView
     val noteView: TextView
-    val dateView: TextView
     //val locationView: TextView
     val priorityView: TextView
 
     init {
         titleView = view.findViewById(R.id.text_view_title)
         noteView = view.findViewById(R.id.text_view_note)
-        dateView = view.findViewById(R.id.text_view_date)
         //locationView = view.findViewById(R.id.text_view_location)
         priorityView = view.findViewById(R.id.text_view_priority)
     }
@@ -125,21 +122,18 @@ class PlansAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
         val titleView: TextView
         val noteView: TextView
-        val dateView: TextView
         //val locationView: TextView
         val priorityView: TextView
 
         init {
             titleView = itemView.findViewById(R.id.text_view_title)
             noteView = itemView.findViewById(R.id.text_view_note)
-            dateView = itemView.findViewById(R.id.text_view_date)
             //locationView = itemView.findViewById(R.id.text_view_location)
             priorityView = itemView.findViewById(R.id.text_view_priority)
         }
     }
 
-    var items: List<ListItem> = listOf(HeaderItem(Calendar.getInstance().time),
-        HeaderItem(getNextDay().time))
+    var items: List<ListItem> = emptyList()
 
     fun getPlanByPosition(position: Int): Plan = (items[position] as PlanItem).plan
 
@@ -173,12 +167,7 @@ class PlansAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 val header: HeaderItem = items[position] as HeaderItem
                 val holder = viewHolder as HeaderViewHolder
 
-                val calendar = Calendar.getInstance()
-                calendar.time = header.date
-                val day = calendar.get(Calendar.DAY_OF_MONTH)
-                val month = calendar.get(Calendar.MONTH)
-
-                holder.txt_header.text = String.format("%02d %s", day, Month.values()[month])
+                holder.txt_header.text = header.dateInString
             }
             ListItem.TYPE_EVENT -> {
                 val planItem: PlanItem = items[position] as PlanItem
@@ -187,7 +176,6 @@ class PlansAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
                 holder.titleView.text = planItem.plan.title
                 holder.noteView.text = planItem.plan.note
-                holder.dateView.text = Date(planItem.plan.date!!).toString()
                 //locationView.text = plan.location
                 holder.priorityView.text = planItem.plan.priority.toString()
             }

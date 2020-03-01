@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.example.weekplanner.R
@@ -27,9 +28,7 @@ class AddingActivity : AppCompatActivity() {
         const val EXTRA_CATEGORY = "com.week_planner.java.EXTRA_CATEGORY"
     }
 
-    private val currentTimeInMillis get() = Calendar.getInstance().time.time
-    private var priority = 0
-    private var spinner: Spinner? = null
+    private var radioGroup: RadioGroup? = null
     private var tomorrowRadio : RadioButton? = null
 
     private val choosedDateAndTime = Calendar.getInstance()
@@ -38,9 +37,8 @@ class AddingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.adding_layout)
 
+        radioGroup = findViewById(R.id.radioGroup)
         tomorrowRadio = findViewById(R.id.tomorrowRadio)
-        spinner = findViewById(R.id.prioritySpinner)
-        createArrayAdapter(this, R.array.priority_array, spinner)
 
         supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_close)
 
@@ -64,7 +62,8 @@ class AddingActivity : AppCompatActivity() {
             title = "Edit Note"
             edit_text_title.setText(intent.getStringExtra(EXTRA_TITLE))
             edit_text_note.setText(intent.getStringExtra(EXTRA_NOTE))
-            spinner?.setSelection(intent.getIntExtra(EXTRA_PRIORITY, 0))
+            val button = radioGroup?.getChildAt(intent.getIntExtra(EXTRA_PRIORITY, 0))
+            (button as RadioButton).isChecked = true
         } else {
             title = "Add Note"
         }
@@ -97,10 +96,14 @@ class AddingActivity : AppCompatActivity() {
             choosedDateAndTime.add(Calendar.DAY_OF_YEAR, 1)
         }
 
+        val radioButtonID = radioGroup!!.checkedRadioButtonId
+        val radioButton = radioGroup!!.findViewById<RadioButton>(radioButtonID)
+        val idx = radioGroup!!.indexOfChild(radioButton)
+
         val data = Intent().apply {
             putExtra(EXTRA_TITLE, edit_text_title.text.toString())
             putExtra(EXTRA_NOTE, edit_text_note.text.toString())
-            putExtra(EXTRA_PRIORITY, spinner?.selectedItemPosition)
+            putExtra(EXTRA_PRIORITY, idx)
             putExtra(EXTRA_DATE, choosedDateAndTime.timeInMillis)
             //putExtra(EXTRA_DATE, dayPicker)
             //putExtra(EXTRA_LOCATION, )

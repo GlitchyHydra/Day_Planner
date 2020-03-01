@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        recycler_view.layoutManager = LinearLayoutManager(this)
+        recycler_view.layoutManager = LinearLayoutManager(this) as RecyclerView.LayoutManager?
         recycler_view.setHasFixedSize(true)
 
         val adapter = PlansAdapter()
@@ -62,10 +62,10 @@ class MainActivity : AppCompatActivity() {
 
             val (calendarToday, calendarTomorrow) = Pair(Calendar.getInstance(),
                 getNextDay())
-            val total = mutableListOf<ListItem>(HeaderItem(calendarToday.time))
+            val total = mutableListOf<ListItem>(HeaderItem(getString(R.string.today)))
             total.addAll(newList.filter { listItem -> getDayOfYear(listItem.plan.date!!) == calendarToday
                 .get(Calendar.DAY_OF_MONTH) })
-            total.add(HeaderItem(calendarTomorrow.time))
+            total.add(HeaderItem(getString(R.string.tomorrow)))
             total.addAll(newList.filter { listItem -> getDayOfYear(listItem.plan.date!!) != calendarToday
                 .get(Calendar.DAY_OF_MONTH) })
 
