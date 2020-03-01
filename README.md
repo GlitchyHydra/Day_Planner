@@ -5,7 +5,9 @@ There is stastistic by all time in pie chart and bar chart per day.
 The tasks will be marked as failed and delete when the day for this task is over.
 
 The main screen.
+
 ![alt text](https://i.imgur.com/6TmL7QK.jpg)
 
 The add screen. 
+
 ![alt text](https://i.imgur.com/CeB09zt.jpg)
