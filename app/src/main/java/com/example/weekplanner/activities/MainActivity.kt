@@ -1,7 +1,9 @@
 package com.example.weekplanner.activities
 
-import android.app.Activity
+import android.app.*
+import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -16,7 +18,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.weekplanner.R
 import com.example.weekplanner.adapters.*
+import com.example.weekplanner.broadcasters.ReminderBroadcaster
 import com.example.weekplanner.data.Plan
+import com.example.weekplanner.data.PlannerDatabase
 import com.example.weekplanner.views.PlanViewModel
 import com.example.weekplanner.views.PlanViewModelFactory
 import kotlinx.android.synthetic.main.activity_main.*
@@ -28,6 +32,8 @@ class MainActivity : AppCompatActivity() {
     companion object {
         const val ADD_NOTE_REQUEST = 101
         const val EDIT_NOTE_REQUEST = 102
+        const val CHANNEL_ID = "dayNotifier"
+        const val EXTRA_CHECK_DAY = "tomorrowCheck"
     }
 
     var planViewModel: PlanViewModel? = null
@@ -41,6 +47,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        createChannel()
 
         buttonAddNote.setOnClickListener {
             startActivityForResult(
@@ -136,23 +144,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
         ).attachToRecyclerView(recycler_view)
-
-        /* adapter.setOnItemClickListener(object :
-             PlansAdapter.OnItemClickListener {
-             override fun onItemClick(plan: Plan) {
-                 val intent = Intent(baseContext, AddingActivity::class.java)
-                 intent.putExtra(AddingActivity.EXTRA_ID, plan.id)
-                 intent.putExtra(AddingActivity.EXTRA_TITLE, plan.title)
-                 intent.putExtra(AddingActivity.EXTRA_NOTE, plan.note)
-                 intent.putExtra(AddingActivity.EXTRA_DATE, plan.date)
-                 intent.putExtra(AddingActivity.EXTRA_LOCATION, plan.location)
-                 intent.putExtra(AddingActivity.EXTRA_PRIORITY, plan.priority)
-
-                 startActivityForResult(intent,
-                     EDIT_NOTE_REQUEST
-                 )
-             }
-         })*/
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -181,41 +172,72 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if (requestCode == ADD_NOTE_REQUEST && resultCode == Activity.RESULT_OK) {
-            val newPlan = Plan(
-                data!!.getStringExtra(AddingActivity.EXTRA_TITLE),
-                data.getStringExtra(AddingActivity.EXTRA_NOTE),
-                data.getLongExtra(AddingActivity.EXTRA_DATE, Calendar.getInstance().timeInMillis),
-                data.getStringExtra(AddingActivity.EXTRA_LOCATION),
-                data.getIntExtra(AddingActivity.EXTRA_PRIORITY, 1),
-                data.getStringExtra(AddingActivity.EXTRA_CATEGORY)
-            )
-            planViewModel!!.insert(newPlan)
-
-            Toast.makeText(this, "Note saved!", Toast.LENGTH_SHORT).show()
-        } else if (requestCode == EDIT_NOTE_REQUEST && resultCode == Activity.RESULT_OK) {
-            val id = data?.getIntExtra(AddingActivity.EXTRA_ID, -1)
-
-            if (id == -1) {
-                Toast.makeText(this, "Could not update! Error!", Toast.LENGTH_SHORT).show()
-            }
-
-            val updateNote = Plan(
-                data!!.getStringExtra(AddingActivity.EXTRA_TITLE),
-                data.getStringExtra(AddingActivity.EXTRA_NOTE),
-                data.getLongExtra(AddingActivity.EXTRA_DATE, Calendar.getInstance().timeInMillis),
-                data.getStringExtra(AddingActivity.EXTRA_LOCATION),
-                data.getIntExtra(AddingActivity.EXTRA_PRIORITY, 1),
-                data.getStringExtra(AddingActivity.EXTRA_CATEGORY)
-            )
-            updateNote.id = data.getIntExtra(AddingActivity.EXTRA_ID, -1)
-            planViewModel!!.update(updateNote)
-
-        } else {
+        if (resultCode != Activity.RESULT_OK) {
             Toast.makeText(this, "Note not saved!", Toast.LENGTH_SHORT).show()
+        } else if (resultCode == Activity.RESULT_OK) {
+            val plan = Plan(
+                data!!.getStringExtra(AddingActivity.EXTRA_TITLE),
+                data.getStringExtra(AddingActivity.EXTRA_NOTE),
+                data.getLongExtra(AddingActivity.EXTRA_DATE, Calendar.getInstance().timeInMillis),
+                data.getStringExtra(AddingActivity.EXTRA_LOCATION),
+                data.getIntExtra(AddingActivity.EXTRA_PRIORITY, 1),
+                data.getStringExtra(AddingActivity.EXTRA_CATEGORY)
+            )
+
+            if (requestCode == ADD_NOTE_REQUEST) {
+                setTimeNotification(plan.date!!, plan.title!!, Date(plan.date))
+                planViewModel!!.insert(plan)
+            }
+            else if (requestCode == EDIT_NOTE_REQUEST) {
+                val id = data.getIntExtra(AddingActivity.EXTRA_ID, -1)
+                if (id == -1) {
+                    Toast.makeText(this, "Could not update! Error!", Toast.LENGTH_SHORT).show()
+                    return
+                }
+                plan.id = id
+                planViewModel!!.update(plan)
+            }
         }
+    }
 
+    private fun createChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Create the NotificationChannel
+            val name = getString(R.string.channel_name)
+            val descriptionText = getString(R.string.channel_description)
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            val channel = NotificationChannel(CHANNEL_ID, name, importance)
+            channel.description = descriptionText
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
 
+    private fun setTimeNotification(timeInMillis: Long, title: String, date: Date) {
+
+        val intent = Intent(this, ReminderBroadcaster::class.java)
+        intent.putExtra(AddingActivity.EXTRA_TITLE, title)
+        val calendar = Calendar.getInstance()
+        val currentDay = calendar.get(Calendar.DAY_OF_MONTH)
+        calendar.time = date
+        val planDay = calendar.get(Calendar.DAY_OF_MONTH)
+
+        if (planDay == currentDay) intent.putExtra(EXTRA_CHECK_DAY, getString(R.string.today))
+        else intent.putExtra(EXTRA_CHECK_DAY, getString(R.string.tomorrow))
+
+        intent.putExtra(AddingActivity.EXTRA_TITLE, title)
+        val pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0)
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+        alarmManager.set(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
+
+    }
+
+    override fun onDestroy() {
+        PlannerDatabase.destroyInstance()
+        super.onDestroy()
     }
 
 }

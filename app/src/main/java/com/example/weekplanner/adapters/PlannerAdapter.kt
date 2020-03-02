@@ -32,10 +32,10 @@ class AuthorDiffUtilCallback(
 }
 
 class PlansAdapter(
-    val colorNormal: Int,
-    val colorImportant: Int,
-    val colorVeryImportant: Int,
-    val activityContext: Context
+    private val colorNormal: Int,
+    private val colorImportant: Int,
+    private val colorVeryImportant: Int,
+    private var activityContext: Context?
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     class HeaderViewHolder(itemView: View) :
@@ -141,4 +141,8 @@ class PlansAdapter(
         return items[position].getType()
     }
 
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        activityContext = null
+        super.onDetachedFromRecyclerView(recyclerView)
+    }
 }

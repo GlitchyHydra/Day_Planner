@@ -84,10 +84,9 @@ abstract class PlannerDatabase : RoomDatabase() {
                 synchronized(PlannerDatabase::class) {
                     instance = Room.databaseBuilder(
                         context.applicationContext,
-                        PlannerDatabase::class.java, "week-planner-db"
+                        PlannerDatabase::class.java, "day-planner-db"
                     )
                         .fallbackToDestructiveMigration() // when version increments, it migrates (deletes db and creates new) - else it crashes
-                        .addCallback(roomCallback)
                         .build()
                 }
             }
@@ -96,27 +95,6 @@ abstract class PlannerDatabase : RoomDatabase() {
 
         fun destroyInstance() {
             instance = null
-        }
-
-        private val roomCallback = object : RoomDatabase.Callback() {
-            override fun onCreate(db: SupportSQLiteDatabase) {
-                super.onCreate(db)
-                CoroutineScope(Dispatchers.IO).launch {
-                    if (isActive)
-                        instance!!.insert(
-                            instance?.planDAO(),
-                            Plan("Kek", "Kek", Calendar.getInstance().timeInMillis,
-                                "New Orlean", 3, "Category")
-                        )
-                }
-            }
-        }
-    }
-
-    private fun insert(planDao: PlanDao?, plan: Plan) {
-        val job = CoroutineScope(Dispatchers.IO).launch {
-            if (isActive)
-                planDao?.insertPlan(plan)
         }
     }
 }

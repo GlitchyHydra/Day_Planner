@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Week Planner</string>
+    <string name="app_name">Day Planner</string>
     <string name="title">Title</string>
     <string name="note">Note</string>
     <string name="category">Category</string>
@@ -8,6 +8,8 @@
     <string name="failed">Failed</string>
     <string name="completed">Completed</string>
     <string name="ok">Completed</string>
+    <string name="channel_name">PlanReminderChannel</string>
+    <string name="channel_description">Reminder of day tasks</string>
 
     <string-array name="date_range_array">
         <item>Day</item>
@@ -16,10 +18,4 @@
         <item>Year</item>
     </string-array>
 
-    <string-array name="priority_array">
-        <item>Priority</item>
-        <item>Not important</item>
-        <item>Important</item>
-        <item>Very important</item>
-    </string-array>
 </resources>
