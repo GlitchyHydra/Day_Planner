@@ -48,7 +48,7 @@ class AddingActivity : AppCompatActivity() {
 
             val timePickerDialog = TimePickerDialog(
                 this,
-                OnTimeSetListener { timePicker, hourOfDay, minutes ->
+                OnTimeSetListener { _, hourOfDay, minutes ->
                     timePickerText.text = String.format("%02d:%02d", hourOfDay, minutes)
                     choosedDateAndTime.set(Calendar.HOUR_OF_DAY, hourOfDay)
                     choosedDateAndTime.set(Calendar.MINUTE, minutes)
@@ -87,8 +87,7 @@ class AddingActivity : AppCompatActivity() {
                 saveNote()
                 true
             }
-
-            else -> super.onOptionsItemSelected(item)
+            else -> false
         }
     }
 

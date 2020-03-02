@@ -9,6 +9,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -57,7 +58,7 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        recycler_view.layoutManager = LinearLayoutManager(this) as RecyclerView.LayoutManager?
+        recycler_view.layoutManager = LinearLayoutManager(this)
         recycler_view.setHasFixedSize(true)
 
         val adapter = PlansAdapter(
@@ -67,11 +68,8 @@ class MainActivity : AppCompatActivity() {
             this
         )
 
-        //ViewModelProvider.NewInstanceFactory().create(PlanViewModel::class.java)
-        planViewModel = ViewModelProvider(
-            this,
-            PlanViewModelFactory(application)
-        ).get(PlanViewModel::class.java)
+        planViewModel = ViewModelProvider(this, PlanViewModelFactory(application))
+            .get(PlanViewModel::class.java)
         planViewModel!!.getAllPlans().observe(this, Observer<List<Plan>> {
             Toast.makeText(this, "", Toast.LENGTH_SHORT).show()
             val newList = it.map { plan -> PlanItem(plan) }
@@ -120,18 +118,17 @@ class MainActivity : AppCompatActivity() {
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder
             ): Int {
-                if (viewHolder is PlansAdapter.HeaderViewHolder) {
-                    val dragFlags =
-                        ItemTouchHelper.UP or ItemTouchHelper.DOWN or ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
+                return if (viewHolder is PlansAdapter.HeaderViewHolder) {
+                    val dragFlags = 0
                     val swipeFlags = 0
-                    return ItemTouchHelper.Callback.makeMovementFlags(
+                    ItemTouchHelper.Callback.makeMovementFlags(
                         dragFlags,
                         swipeFlags
                     )
                 } else {
-                    val dragFlags = ItemTouchHelper.UP or ItemTouchHelper.DOWN
+                    val dragFlags = 0//ItemTouchHelper.UP or ItemTouchHelper.DOWN
                     val swipeFlags = ItemTouchHelper.START or ItemTouchHelper.END
-                    return ItemTouchHelper.Callback.makeMovementFlags(
+                    ItemTouchHelper.Callback.makeMovementFlags(
                         dragFlags,
                         swipeFlags
                     )
@@ -164,7 +161,7 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             else -> {
-                super.onOptionsItemSelected(item)
+                false
             }
         }
     }
@@ -187,8 +184,7 @@ class MainActivity : AppCompatActivity() {
             if (requestCode == ADD_NOTE_REQUEST) {
                 setTimeNotification(plan.date!!, plan.title!!, Date(plan.date))
                 planViewModel!!.insert(plan)
-            }
-            else if (requestCode == EDIT_NOTE_REQUEST) {
+            } else if (requestCode == EDIT_NOTE_REQUEST) {
                 val id = data.getIntExtra(AddingActivity.EXTRA_ID, -1)
                 if (id == -1) {
                     Toast.makeText(this, "Could not update! Error!", Toast.LENGTH_SHORT).show()
@@ -202,21 +198,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun createChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // Create the NotificationChannel
             val name = getString(R.string.channel_name)
             val descriptionText = getString(R.string.channel_description)
             val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(CHANNEL_ID, name, importance)
             channel.description = descriptionText
-            // Register the channel with the system; you can't change the importance
-            // or other notification behaviors after this
             val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
         }
     }
 
     private fun setTimeNotification(timeInMillis: Long, title: String, date: Date) {
-
         val intent = Intent(this, ReminderBroadcaster::class.java)
         intent.putExtra(AddingActivity.EXTRA_TITLE, title)
         val calendar = Calendar.getInstance()
@@ -232,7 +224,6 @@ class MainActivity : AppCompatActivity() {
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
         alarmManager.set(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
-
     }
 
     override fun onDestroy() {
